@@ -3,111 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Список желаний с фоном</title>
+<title>Realtime Wishlist</title>
 <style>
 :root {
   --bg-color: #f0f0f0;
   --card-color: #fff;
   --text-color: #000;
 }
-
 body {
   background: var(--bg-color);
   font-family: sans-serif;
-  margin: 0;
-  padding: 20px;
-  transition: background 0.3s;
+  margin:0; padding:20px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  transition: background 0.3s;
 }
-
-h1 {
-  text-align: center;
-  color: var(--text-color);
-}
-
-#wishlist {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.item {
-  background: var(--card-color);
-  color: var(--text-color);
-  padding: 10px 15px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: transform 0.2s, opacity 0.2s;
-}
-
-.item.removed {
-  opacity: 0;
-  transform: translateX(100%);
-}
-
-button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-button.delete {
-  background: #ff4d4d;
-  color: white;
-}
-
-button.delete:hover {
-  background: #e60000;
-}
-
-input {
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  margin-right: 10px;
-}
-
-.input-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-label {
-  color: var(--text-color);
-}
-
-#bgImageInput {
-  width: 200px;
-}
+h1 { text-align:center; color: var(--text-color); }
+#wishlist { display:flex; flex-direction:column; gap:10px; max-width:400px; margin:auto; margin-top:20px;}
+.item { background: var(--card-color); color: var(--text-color); padding:10px 15px; border-radius:8px;
+display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+button { padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+button.delete { background:#ff4d4d; color:white; }
+button.delete:hover { background:#e60000; }
+.input-container { display:flex; justify-content:center; margin-top:20px; }
+input { padding:8px; border-radius:5px; border:1px solid #ccc; margin-right:10px;}
+.controls { display:flex; flex-wrap:wrap; justify-content:center; margin-top:20px; gap:10px; }
+label { color: var(--text-color); }
+#bgImageInput { width:200px; }
 </style>
 </head>
 <body>
 
-<h1>Мой список желаний</h1>
+<h1>Список желаний Realtime</h1>
 
 <div class="input-container">
   <input type="text" id="wishInput" placeholder="Введите желание">
-  <button onclick="addWish()">Добавить</button>
+  <button id="addBtn">Добавить</button>
 </div>
 
 <div id="wishlist"></div>
@@ -125,103 +57,11 @@ label {
   <label>Фон (URL):
     <input type="url" id="bgImageInput" placeholder="https://example.com/bg.jpg">
   </label>
-  <button onclick="applyBgImage()">Применить фон</button>
-  <label>или перетащи файл сюда:</label>
+  <button id="applyBgBtn">Применить фон</button>
+  <label>или перетащи файл:</label>
   <input type="file" id="bgFile" accept="image/*">
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const wishlistEl = document.getElementById('wishlist');
-  const bgInput = document.getElementById('bgColor');
-  const cardInput = document.getElementById('cardColor');
-  const textInput = document.getElementById('textColor');
-  const bgImageInput = document.getElementById('bgImageInput');
-  const bgFileInput = document.getElementById('bgFile');
-
-  let wishes = JSON.parse(localStorage.getItem('wishes')) || [];
-  let colors = JSON.parse(localStorage.getItem('colors')) || {
-    bg: '#f0f0f0',
-    card: '#ffffff',
-    text: '#000000',
-    bgImage: ''
-  };
-
-  function setColors(bg, card, text, bgImage='') {
-    document.documentElement.style.setProperty('--bg-color', bg);
-    document.documentElement.style.setProperty('--card-color', card);
-    document.documentElement.style.setProperty('--text-color', text);
-    colors = { bg, card, text, bgImage };
-    if(bgImage) {
-      document.body.style.background = `url('${bgImage}') center/cover no-repeat fixed`;
-    } else {
-      document.body.style.background = bg;
-    }
-  }
-
-  setColors(colors.bg, colors.card, colors.text, colors.bgImage);
-  bgInput.value = colors.bg;
-  cardInput.value = colors.card;
-  textInput.value = colors.text;
-  bgImageInput.value = colors.bgImage;
-
-  window.render = function() {
-    wishlistEl.innerHTML = '';
-    wishes.forEach((text, index) => {
-      const item = document.createElement('div');
-      item.className = 'item';
-      item.innerHTML = `<div>${text}</div><button class="delete" onclick="removeWish(${index})">Удалить</button>`;
-      wishlistEl.appendChild(item);
-    });
-    save();
-  }
-
-  window.addWish = function() {
-    const input = document.getElementById('wishInput');
-    const text = input.value.trim();
-    if(!text) return;
-    wishes.push(text);
-    input.value = '';
-    render();
-  }
-
-  window.removeWish = function(index) {
-    const item = wishlistEl.children[index];
-    item.classList.add('removed');
-    setTimeout(() => {
-      wishes.splice(index, 1);
-      render();
-    }, 200);
-  }
-
-  function save() {
-    localStorage.setItem('wishes', JSON.stringify(wishes));
-    localStorage.setItem('colors', JSON.stringify(colors));
-  }
-
-  bgInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value, colors.bgImage); save(); });
-  cardInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value, colors.bgImage); save(); });
-  textInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value, colors.bgImage); save(); });
-
-  window.applyBgImage = function() {
-    const url = bgImageInput.value.trim();
-    setColors(bgInput.value, cardInput.value, textInput.value, url);
-    save();
-  }
-
-  bgFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      setColors(bgInput.value, cardInput.value, textInput.value, ev.target.result);
-      save();
-    }
-    reader.readAsDataURL(file);
-  });
-
-  render();
-});
-</script>
+<script type="module" src="./app.js"></script>
 </body>
 </html>
