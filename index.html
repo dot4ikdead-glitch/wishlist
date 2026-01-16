@@ -1,66 +1,211 @@
-    const wishlistEl = document.getElementById('wishlist');
-    let wishes = JSON.parse(localStorage.getItem('wishes')) || [];
-
-    function render() {
-      wishlistEl.innerHTML = '';
-      wishes.forEach((text, index) => {
-        const item = document.createElement('div');
-        item.className = 'item';
-        item.innerHTML = `
-          <div>${text}</div>
-          <button onclick="removeWish(${index})">Удалить</button>
-        `;
-        wishlistEl.appendChild(item);
-      });
-      save();
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Список желаний</title>
+  <style>
+    :root {
+      --bg-color: #f0f0f0;
+      --card-color: #fff;
+      --text-color: #000;
     }
 
-    function addWish() {
-      const input = document.getElementById('wishInput');
-      const text = input.value.trim();
-      if (!text) return;
-      wishes.push(text);
-      input.value = '';
-      render();
+    body {
+      background: var(--bg-color);
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s;
     }
 
-    function removeWish(index) {
-      wishes.splice(index, 1);
-      render();
+    h1 {
+      text-align: center;
+      color: var(--text-color);
     }
 
-    function save() {
-      localStorage.setItem('wishes', JSON.stringify(wishes));
-      const encoded = encodeURIComponent(JSON.stringify(wishes));
-      history.replaceState(null, '', `?wishes=${encoded}`);
+    #wishlist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    function loadFromLink() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('wishes')) {
-        try {
-          wishes = JSON.parse(decodeURIComponent(params.get('wishes')));
-          render();
-        } catch (e) {}
+    .item {
+      background: var(--card-color);
+      color: var(--text-color);
+      padding: 10px 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .item.removed {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+
+    button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button.delete {
+      background: #ff4d4d;
+      color: white;
+    }
+
+    button.delete:hover {
+      background: #e60000;
+    }
+
+    input, select {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .input-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    label {
+      color: var(--text-color);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Мой список желаний</h1>
+
+  <div class="input-container">
+    <input type="text" id="wishInput" placeholder="Введите желание">
+    <button onclick="addWish()">Добавить</button>
+  </div>
+
+  <div id="wishlist"></div>
+
+  <div class="controls">
+    <label>Фон:
+      <input type="color" id="bgColor" value="#f0f0f0">
+    </label>
+    <label>Карточки:
+      <input type="color" id="cardColor" value="#ffffff">
+    </label>
+    <label>Текст:
+      <input type="color" id="textColor" value="#000000">
+    </label>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const wishlistEl = document.getElementById('wishlist');
+      const bgInput = document.getElementById('bgColor');
+      const cardInput = document.getElementById('cardColor');
+      const textInput = document.getElementById('textColor');
+
+      let wishes = JSON.parse(localStorage.getItem('wishes')) || [];
+      let colors = JSON.parse(localStorage.getItem('colors')) || {
+        bg: '#f0f0f0',
+        card: '#ffffff',
+        text: '#000000'
+      };
+
+      // Инициализируем цвета
+      setColors(colors.bg, colors.card, colors.text);
+      bgInput.value = colors.bg;
+      cardInput.value = colors.card;
+      textInput.value = colors.text;
+
+      function render() {
+        wishlistEl.innerHTML = '';
+        wishes.forEach((text, index) => {
+          const item = document.createElement('div');
+          item.className = 'item';
+          item.innerHTML = `
+            <div>${text}</div>
+            <button class="delete" onclick="removeWish(${index})">Удалить</button>
+          `;
+          wishlistEl.appendChild(item);
+        });
+        save();
       }
-    }
 
-    function setBg(color) {
-      document.documentElement.style.setProperty('--bg-color', color);
-    }
+      window.addWish = function() {
+        const input = document.getElementById('wishInput');
+        const text = input.value.trim();
+        if (!text) return;
+        wishes.push(text);
+        input.value = '';
+        render();
+      }
 
-    function setCard(color) {
-      document.documentElement.style.setProperty('--card-color', color);
-    }
+      window.removeWish = function(index) {
+        const item = wishlistEl.children[index];
+        item.classList.add('removed');
+        setTimeout(() => {
+          wishes.splice(index, 1);
+          render();
+        }, 200);
+      }
 
-    function setText(color) {
-      document.documentElement.style.setProperty('--text-color', color);
-    }
+      function save() {
+        localStorage.setItem('wishes', JSON.stringify(wishes));
+        localStorage.setItem('colors', JSON.stringify(colors));
+        const encoded = encodeURIComponent(JSON.stringify(wishes));
+        history.replaceState(null, '', `?wishes=${encoded}`);
+      }
 
-    document.body.style.background = "url('photo_2026-01-16_04-01-44.jpg') center/cover no-repeat fixed";
+      function loadFromLink() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('wishes')) {
+          try {
+            wishes = JSON.parse(decodeURIComponent(params.get('wishes')));
+            render();
+          } catch (e) {
+            console.error("Не удалось загрузить желания из ссылки", e);
+          }
+        }
+      }
 
-    loadFromLink();
-    render();
+      function setColors(bg, card, text) {
+        document.documentElement.style.setProperty('--bg-color', bg);
+        document.documentElement.style.setProperty('--card-color', card);
+        document.documentElement.style.setProperty('--text-color', text);
+        colors = { bg, card, text };
+      }
+
+      // Слушатели изменения цвета
+      bgInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value); save(); });
+      cardInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value); save(); });
+      textInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value); save(); });
+
+      // Фоновое изображение
+      document.body.style.background = "url('photo_2026-01-16_04-01-44.jpg') center/cover no-repeat fixed";
+
+      loadFromLink();
+      render();
+    });
   </script>
 </body>
 </html>
