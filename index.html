@@ -131,13 +131,14 @@
         text: '#000000'
       };
 
-      // Инициализируем цвета
+      // Инициализация цветов
       setColors(colors.bg, colors.card, colors.text);
       bgInput.value = colors.bg;
       cardInput.value = colors.card;
       textInput.value = colors.text;
 
-      function render() {
+      // Рендер списка
+      window.render = function() {
         wishlistEl.innerHTML = '';
         wishes.forEach((text, index) => {
           const item = document.createElement('div');
@@ -151,6 +152,7 @@
         save();
       }
 
+      // Добавление желания
       window.addWish = function() {
         const input = document.getElementById('wishInput');
         const text = input.value.trim();
@@ -160,6 +162,7 @@
         render();
       }
 
+      // Удаление желания с анимацией
       window.removeWish = function(index) {
         const item = wishlistEl.children[index];
         item.classList.add('removed');
@@ -169,6 +172,7 @@
         }, 200);
       }
 
+      // Сохранение в localStorage и URL
       function save() {
         localStorage.setItem('wishes', JSON.stringify(wishes));
         localStorage.setItem('colors', JSON.stringify(colors));
@@ -176,18 +180,18 @@
         history.replaceState(null, '', `?wishes=${encoded}`);
       }
 
+      // Загрузка из URL
       function loadFromLink() {
         const params = new URLSearchParams(window.location.search);
         if (params.has('wishes')) {
           try {
             wishes = JSON.parse(decodeURIComponent(params.get('wishes')));
             render();
-          } catch (e) {
-            console.error("Не удалось загрузить желания из ссылки", e);
-          }
+          } catch (e) { console.error(e); }
         }
       }
 
+      // Установка цветов
       function setColors(bg, card, text) {
         document.documentElement.style.setProperty('--bg-color', bg);
         document.documentElement.style.setProperty('--card-color', card);
@@ -200,12 +204,13 @@
       cardInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value); save(); });
       textInput.addEventListener('input', () => { setColors(bgInput.value, cardInput.value, textInput.value); save(); });
 
-      // Фоновое изображение
+      // Фоновое изображение (можно заменить)
       document.body.style.background = "url('photo_2026-01-16_04-01-44.jpg') center/cover no-repeat fixed";
 
       loadFromLink();
       render();
     });
   </script>
+
 </body>
 </html>
