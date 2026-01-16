@@ -1,8 +1,7 @@
-// Импорт Firebase модулей
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-// Конфигурация Firebase
+// Firebase конфиг
 const firebaseConfig = {
   apiKey: "AIzaSyDMIHaQLB4I975YQLBIcLFrn3zzeu5_UXU",
   authDomain: "wishlist-f18e4.firebaseapp.com",
@@ -18,12 +17,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Ссылки на базу данных
 const wishesRef = ref(db, 'wishes');
 const colorsRef = ref(db, 'colors');
 
-// DOM элементы
 const wishlistEl = document.getElementById('wishlist');
+const counterEl = document.getElementById('counter');
 const bgInput = document.getElementById('bgColor');
 const cardInput = document.getElementById('cardColor');
 const textInput = document.getElementById('textColor');
@@ -35,17 +33,43 @@ const applyBgBtn = document.getElementById('applyBgBtn');
 let wishes = [];
 let colors = { bg:'#f0f0f0', card:'#fff', text:'#000', bgImage:'' };
 
-// Рендер списка
+// Функция обновления счетчика
+function updateCounter() {
+  const done = wishes.filter(w => w.done).length;
+  const total = wishes.length;
+  counterEl.textContent = `Выполнено: ${done} / ${total}`;
+}
+
+// Рендер списка с чекбоксами
 function render() {
   wishlistEl.innerHTML = '';
-  wishes.forEach((text,index)=>{
+  wishes.forEach((itemObj, index)=>{
     const item = document.createElement('div');
     item.className='item';
-    item.innerHTML = `<div>${text}</div><button class="delete">Удалить</button>`;
+    item.innerHTML = `
+      <label style="flex:1; display:flex; align-items:center; gap:10px;">
+        <input type="checkbox" ${itemObj.done ? 'checked' : ''}>
+        <span style="text-decoration:${itemObj.done ? 'line-through' : 'none'}">${itemObj.text}</span>
+      </label>
+      <button class="delete">Удалить</button>
+    `;
+    const checkbox = item.querySelector('input[type="checkbox"]');
+    const span = item.querySelector('span');
+    checkbox.addEventListener('change', ()=>{
+      wishes[index].done = checkbox.checked;
+      span.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
+      set(wishesRef, wishes);
+      updateCounter();
+    });
     const btn = item.querySelector('button');
-    btn.addEventListener('click',()=>removeWish(index));
+    btn.addEventListener('click', ()=>{
+      wishes.splice(index,1);
+      set(wishesRef, wishes);
+      updateCounter();
+    });
     wishlistEl.appendChild(item);
   });
+  updateCounter();
 }
 
 // Установка цветов и фона
@@ -56,7 +80,7 @@ function setColors(bg, card, text, bgImage='') {
   colors={ bg, card, text, bgImage };
   if(bgImage) document.body.style.background=`url('${bgImage}') center/cover no-repeat fixed`;
   else document.body.style.background=bg;
-  set(colorsRef, colors); // синхронизация
+  set(colorsRef, colors);
 }
 
 // Добавление желания
@@ -64,15 +88,9 @@ function addWish() {
   const input=document.getElementById('wishInput');
   const text=input.value.trim();
   if(!text) return;
-  wishes.push(text);
+  wishes.push({ text, done:false });
   set(wishesRef, wishes);
   input.value='';
-}
-
-// Удаление желания
-function removeWish(index){
-  wishes.splice(index,1);
-  set(wishesRef, wishes);
 }
 
 // Применение фона по URL
@@ -81,7 +99,7 @@ function applyBgImage() {
   setColors(bgInput.value, cardInput.value, textInput.value, url);
 }
 
-// Слушатели изменения цветов
+// Слушатели цветов
 bgInput.addEventListener('input',()=>setColors(bgInput.value, cardInput.value, textInput.value, colors.bgImage));
 cardInput.addEventListener('input',()=>setColors(bgInput.value, cardInput.value, textInput.value, colors.bgImage));
 textInput.addEventListener('input',()=>setColors(bgInput.value, cardInput.value, textInput.value, colors.bgImage));
@@ -89,7 +107,6 @@ textInput.addEventListener('input',()=>setColors(bgInput.value, cardInput.value,
 addBtn.addEventListener('click', addWish);
 applyBgBtn.addEventListener('click', applyBgImage);
 
-// Слушатель загрузки файла
 bgFileInput.addEventListener('change', (e)=>{
   const file=e.target.files[0];
   if(!file) return;
@@ -100,9 +117,9 @@ bgFileInput.addEventListener('change', (e)=>{
   reader.readAsDataURL(file);
 });
 
-// Слушатели Firebase (реальное время)
+// Firebase слушатели
 onValue(wishesRef, snapshot=>{
-  wishes = snapshot.val()||[];
+  wishes = snapshot.val() || [];
   render();
 });
 

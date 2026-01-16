@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Realtime Wishlist</title>
+<title>Realtime Wishlist с галочками и счетчиком</title>
 <style>
 :root {
   --bg-color: #f0f0f0;
@@ -20,6 +20,7 @@ body {
   transition: background 0.3s;
 }
 h1 { text-align:center; color: var(--text-color); }
+#counter { text-align:center; margin-top:10px; font-weight:bold; color: var(--text-color); }
 #wishlist { display:flex; flex-direction:column; gap:10px; max-width:400px; margin:auto; margin-top:20px;}
 .item { background: var(--card-color); color: var(--text-color); padding:10px 15px; border-radius:8px;
 display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
@@ -35,7 +36,8 @@ label { color: var(--text-color); }
 </head>
 <body>
 
-<h1>Список желаний Realtime</h1>
+<h1>Список желаний Realtime ✅</h1>
+<div id="counter">Выполнено: 0 / 0</div>
 
 <div class="input-container">
   <input type="text" id="wishInput" placeholder="Введите желание">
