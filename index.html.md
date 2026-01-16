@@ -1,0 +1,134 @@
+    **const wishlistEl = document.getElementById('wishlist');**
+
+    **let wishes = JSON.parse(localStorage.getItem('wishes')) || \[];**
+
+
+
+    **function render() {**
+
+      **wishlistEl.innerHTML = '';**
+
+      **wishes.forEach((text, index) => {**
+
+        **const item = document.createElement('div');**
+
+        **item.className = 'item';**
+
+        **item.innerHTML = `**
+
+          **<div>${text}</div>**
+
+          **<button onclick="removeWish(${index})">Удалить</button>**
+
+        **`;**
+
+        **wishlistEl.appendChild(item);**
+
+      **});**
+
+      **save();**
+
+    **}**
+
+
+
+    **function addWish() {**
+
+      **const input = document.getElementById('wishInput');**
+
+      **const text = input.value.trim();**
+
+      **if (!text) return;**
+
+      **wishes.push(text);**
+
+      **input.value = '';**
+
+      **render();**
+
+    **}**
+
+
+
+    **function removeWish(index) {**
+
+      **wishes.splice(index, 1);**
+
+      **render();**
+
+    **}**
+
+
+
+    **function save() {**
+
+      **localStorage.setItem('wishes', JSON.stringify(wishes));**
+
+      **const encoded = encodeURIComponent(JSON.stringify(wishes));**
+
+      **history.replaceState(null, '', `?wishes=${encoded}`);**
+
+    **}**
+
+
+
+    **function loadFromLink() {**
+
+      **const params = new URLSearchParams(window.location.search);**
+
+      **if (params.has('wishes')) {**
+
+        **try {**
+
+          **wishes = JSON.parse(decodeURIComponent(params.get('wishes')));**
+
+          **render();**
+
+        **} catch (e) {}**
+
+      **}**
+
+    **}**
+
+
+
+    **function setBg(color) {**
+
+      **document.documentElement.style.setProperty('--bg-color', color);**
+
+    **}**
+
+
+
+    **function setCard(color) {**
+
+      **document.documentElement.style.setProperty('--card-color', color);**
+
+    **}**
+
+
+
+    **function setText(color) {**
+
+      **document.documentElement.style.setProperty('--text-color', color);**
+
+    **}**
+
+
+
+    **document.body.style.background = "url('photo\_2026-01-16\_04-01-44.jpg') center/cover no-repeat fixed";**
+
+
+
+    **loadFromLink();**
+
+    **render();**
+
+  **</script>**
+
+**</body>**
+
+**</html>**
+
+
+
