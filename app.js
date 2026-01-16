@@ -119,7 +119,17 @@ bgFileInput.addEventListener('change', (e)=>{
 
 // Firebase слушатели
 onValue(wishesRef, snapshot=>{
-  wishes = snapshot.val() || [];
+  let val = snapshot.val() || [];
+  
+  // Если данные старые строки — конвертируем в объекты с done:false
+  wishes = val.map(item => {
+    if(typeof item === 'string') return { text: item, done: false };
+    else return item;
+  });
+  
+  // Сохраняем обратно уже как объекты (чтобы чекбоксы появились)
+  set(wishesRef, wishes);
+
   render();
 });
 
